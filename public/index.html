@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Reserve Desk | Staff Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --cream: #FFFDD0;
+            --charcoal: #2C3E50;
+            --gold: #D4AF37;
+        }
+        body {
+            background-color: var(--charcoal);
+            color: var(--charcoal);
+            font-family: 'Inter', sans-serif;
+        }
+        .luxury-serif { font-family: 'Playfair Display', serif; }
+        .bg-cream { background-color: var(--cream); }
+        .bg-gold { background-color: var(--gold); }
+        .text-gold { color: var(--gold); }
+        .border-gold { border-color: var(--gold); }
+        .chat-bubble-guest { background-color: #E9E9EB; color: black; border-radius: 18px; padding: 8px 12px; max-width: 80%; margin-bottom: 8px; align-self: flex-start; }
+        .chat-bubble-host { background-color: var(--gold); color: white; border-radius: 18px; padding: 8px 12px; max-width: 80%; margin-bottom: 8px; align-self: flex-end; }
+    </style>
+</head>
+<body class="p-4 md:p-8 min-h-screen flex items-center justify-center">
+
+    <div class="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- STAFF DASHBOARD -->
+        <div class="lg:col-span-2 space-y-6">
+            <header class="flex justify-between items-center bg-cream p-6 rounded-xl shadow-2xl border-b-4 border-gold">
+                <div>
+                    <h1 class="luxury-serif text-3xl font-bold tracking-tight">THE RESERVE DESK</h1>
+                    <p class="text-sm uppercase tracking-widest opacity-70">Staff Portal • Live Staging</p>
+                </div>
+                <div class="text-right">
+                    <span class="bg-charcoal text-white text-xs px-3 py-1 rounded-full uppercase">Authenticated</span>
+                </div>
+            </header>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Guest Profile -->
+                <section class="bg-cream p-6 rounded-xl shadow-lg border-l-4 border-gold">
+                    <h2 class="luxury-serif text-xl font-bold mb-4 flex items-center">
+                        <span class="mr-2">👤</span> Guest Profile
+                    </h2>
+                    <div id="guest-info" class="space-y-2">
+                        <!-- Loading... -->
+                    </div>
+                </section>
+
+                <!-- Good to Know Notes -->
+                <section class="bg-cream p-6 rounded-xl shadow-lg border-l-4 border-gold">
+                    <h2 class="luxury-serif text-xl font-bold mb-4 flex items-center">
+                        <span class="mr-2">📝</span> Good to Know
+                    </h2>
+                    <ul id="notes-list" class="space-y-2 text-sm italic">
+                        <!-- Notes will be loaded here -->
+                    </ul>
+                </section>
+            </div>
+
+            <!-- Chat Display -->
+            <section class="bg-cream p-6 rounded-xl shadow-lg h-96 flex flex-col border-t-4 border-gold">
+                <h2 class="luxury-serif text-xl font-bold mb-4">Live Concierge Chat</h2>
+                <div id="chat-history" class="flex-grow overflow-y-auto flex flex-col space-y-2 pr-2">
+                    <!-- Chat bubbles will be loaded here -->
+                </div>
+            </section>
+        </div>
+
+        <!-- SIMULATOR PANEL -->
+        <div class="bg-zinc-900 text-white p-6 rounded-3xl shadow-2xl border-4 border-zinc-800 flex flex-col h-[700px]">
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-zinc-700 rounded-full mx-auto mb-2 flex items-center justify-center text-2xl font-bold luxury-serif">JG</div>
+                <h3 class="font-semibold">Justin Greenwald</h3>
+                <p class="text-xs opacity-50 text-gold">Guest iMessage Simulator</p>
+            </div>
+
+            <div class="flex-grow bg-black rounded-2xl p-4 mb-4 overflow-y-auto flex flex-col" id="sim-chat">
+                <div class="text-[10px] text-center opacity-30 mb-4 uppercase tracking-tighter">Today 4:20 PM</div>
+            </div>
+
+            <div class="flex gap-2">
+                <input type="text" id="guest-input" placeholder="iMessage..." class="flex-grow bg-zinc-800 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gold">
+                <button onclick="sendGuestMessage()" class="bg-blue-600 rounded-full w-10 h-10 flex items-center justify-center font-bold">↑</button>
+            </div>
+            <p class="text-[10px] opacity-30 mt-4 text-center">Type 'towels', 'pillows', or 'check-in' to see dynamic dashboard updates.</p>
+        </div>
+
+    </div>
+
+    <script>
+        async function loadData() {
+            const res = await fetch('/api/data');
+            const data = await res.json();
+            
+            // Render Guest
+            const guest = data.guests[0];
+            document.getElementById('guest-info').innerHTML = `
+                <p><span class="font-semibold">Name:</span> ${guest.name}</p>
+                <p><span class="font-semibold">Location:</span> ${guest.location}</p>
+                <p><span class="font-semibold">Guest ID:</span> ${guest.id}</p>
+                <p><span class="font-semibold">Status:</span> ${guest.status}</p>
+            `;
+
+            // Render Notes
+            const notesList = document.getElementById('notes-list');
+            notesList.innerHTML = data.concierge_notes.map(n => `<li>• ${n.text}</li>`).join('');
+
+            // Render Chat
+            const chatHistory = document.getElementById('chat-history');
+            const simChat = document.getElementById('sim-chat');
+            chatHistory.innerHTML = '';
+            simChat.innerHTML = '<div class="text-[10px] text-center opacity-30 mb-4 uppercase tracking-tighter">Today 4:20 PM</div>';
+            
+            data.chat_history.forEach(msg => {
+                appendMessageToUI(msg.text, msg.isGuest);
+            });
+        }
+
+        function appendMessageToUI(text, isGuest) {
+            const chatHistory = document.getElementById('chat-history');
+            const simChat = document.getElementById('sim-chat');
+
+            // Dashboard bubble
+            const bubble = document.createElement('div');
+            bubble.className = isGuest ? 'chat-bubble-guest self-start' : 'chat-bubble-host self-end';
+            bubble.textContent = text;
+            chatHistory.appendChild(bubble);
+
+            // Sim bubble
+            const simBubble = document.createElement('div');
+            simBubble.className = isGuest ? 'bg-blue-600 text-white rounded-2xl px-3 py-1.5 text-sm self-end mb-2 max-w-[80%]' : 'bg-zinc-800 text-white rounded-2xl px-3 py-1.5 text-sm self-start mb-2 max-w-[80%]';
+            simBubble.textContent = text;
+            simChat.appendChild(simBubble);
+
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+            simChat.scrollTop = simChat.scrollHeight;
+        }
+
+        async function sendGuestMessage() {
+            const input = document.getElementById('guest-input');
+            const msg = input.value.trim();
+            if (!msg) return;
+
+            input.value = '';
+            
+            await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: msg, isGuest: true })
+            });
+
+            loadData();
+
+            // Mock response
+            setTimeout(async () => {
+                await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: "Of course! We're on it.", isGuest: false })
+                });
+                loadData();
+            }, 1000);
+        }
+
+        document.getElementById('guest-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendGuestMessage();
+        });
+
+        loadData();
+    </script>
+</body>
+</html>
