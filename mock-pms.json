@@ -1,0 +1,26 @@
+{
+  "guests": {
+    "guest_123": {
+      "_id": "guest_123",
+      "firstName": "Justin",
+      "lastName": "Greenwald",
+      "phone": "+1-555-0199",
+      "email": "justin@example.com",
+      "goodToKnowNotes": "Prefers high floors. Allergic to peanuts.",
+      "createdAt": "2026-01-15T10:00:00.000Z"
+    }
+  },
+  "reservations": {
+    "res_456": {
+      "_id": "res_456",
+      "guestId": "guest_123",
+      "listing": {
+        "title": "The Surf Lodge"
+      },
+      "status": "confirmed",
+      "checkInDate": "2026-06-20",
+      "checkOutDate": "2026-06-25"
+    }
+  },
+  "messages": []
+}
